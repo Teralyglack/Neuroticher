@@ -5,14 +5,9 @@ from typing import Optional, Dict, Any, List
 
 
 class UserDatabase:
-    """SQLite база для Telegram-бота.
+#SQLite база для Telegram-бота
 
-    Улучшения:
-    - foreign_keys ON
-    - мягкие миграции (добавление колонок при обновлениях)
-    - единый метод record_exercise() (история + статистика)
-    - streak (серия дней)
-    """
+
 
     def __init__(self, db_path: str = "english_tutor.db"):
         self.db_path = db_path
