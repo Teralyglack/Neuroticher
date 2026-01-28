@@ -14,7 +14,7 @@ class EvaluationResult:
 
 
 class LearningEngine:
-    """Логика уровня, проверки ответов и рекомендаций."""
+#Логика уровня, проверки ответов и рекомендаций
 
     def __init__(self):
         self.topics = {
