@@ -19,10 +19,8 @@ from dotenv import load_dotenv
 
 from database import UserDatabase
 from learning_engine import LearningEngine
-from gigachat_api import GigaChatAPI
-ai = GigaChatAPI()
+from openai_api import OpenAIAPI
 
-# Всегда грузим .env из папки, где лежит main.py (важно для PyCharm Working Directory)
 load_dotenv(dotenv_path=Path(__file__).with_name(".env"))
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
@@ -33,7 +31,7 @@ router = Router()
 dp.include_router(router)
 
 db = UserDatabase()
-ai = GigaChatAPI()
+ai = OpenAIAPI()
 learning = LearningEngine()
 
 
@@ -238,11 +236,11 @@ async def handle_exercise(callback: CallbackQuery, state: FSMContext):
         tips_text = "\n".join("• " + esc(str(t)) for t in tips[:4])
 
     text = (
-        f"💪 <b>{esc(str(ex.get('title', 'Упражнение')))}</b>\n\n"
-        f"<b>Инструкция:</b> {esc(str(ex.get('instruction', '')))}\n\n"
-        f"<b>Задание:</b>\n{esc(str(ex.get('question', '')))}\n\n"
-        + (f"💡 <b>Подсказки:</b>\n{tips_text}\n\n" if tips_text else "")
-        + "<i>Отправь ответ одним сообщением. Я проверю ✅</i>"
+            f"💪 <b>{esc(str(ex.get('title', 'Упражнение')))}</b>\n\n"
+            f"<b>Инструкция:</b> {esc(str(ex.get('instruction', '')))}\n\n"
+            f"<b>Задание:</b>\n{esc(str(ex.get('question', '')))}\n\n"
+            + (f"💡 <b>Подсказки:</b>\n{tips_text}\n\n" if tips_text else "")
+            + "<i>Отправь ответ одним сообщением. Я проверю ✅</i>"
     )
 
     await safe_edit(callback.message, text, kb_back())
@@ -289,13 +287,13 @@ async def process_exercise_answer(message: Message, state: FSMContext):
     mot = learning.motivation_message(streak, stats.get("accuracy", 0.0))
 
     text = (
-        ("✅ <b>Верно!</b>\n" if is_correct else "❌ <b>Нужно поправить</b>\n")
-        + f"{esc(eval_res.feedback)}\n\n"
-        + f"<b>Твой ответ:</b> {esc(user_answer)}\n"
-        + f"<b>Правильный:</b> {esc(correct_answer)}\n\n"
-        + f"⏱️ Время: <b>{time_spent}</b> сек.\n"
-        + f"🎯 Точность: <b>{accuracy:.0f}%</b> | 🔥 Серия: <b>{streak}</b> дн.\n\n"
-        + f"{esc(mot)}"
+            ("✅ <b>Верно!</b>\n" if is_correct else "❌ <b>Нужно поправить</b>\n")
+            + f"{esc(eval_res.feedback)}\n\n"
+            + f"<b>Твой ответ:</b> {esc(user_answer)}\n"
+            + f"<b>Правильный:</b> {esc(correct_answer)}\n\n"
+            + f"⏱️ Время: <b>{time_spent}</b> сек.\n"
+            + f"🎯 Точность: <b>{accuracy:.0f}%</b> | 🔥 Серия: <b>{streak}</b> дн.\n\n"
+            + f"{esc(mot)}"
     )
 
     await message.answer(text, reply_markup=kb_main())
@@ -439,7 +437,16 @@ async def main():
     print("\n" + "=" * 55)
     print("🎓 NeuroEnglish Tutor запущен!")
     print("📗 База данных: ✅")
-    print(f"🧠 OpenAI: {'✅' if ai.api_key else '⚠️ не настроен'}")
+
+    # Проверяем GigaChat настройки
+    gigachat_client_id = os.getenv("GIGACHAT_CLIENT_ID")
+    gigachat_client_secret = os.getenv("GIGACHAT_CLIENT_SECRET")
+
+    if gigachat_client_id and gigachat_client_secret:
+        print(f"🧠 GigaChat: ✅ настроен")
+    else:
+        print(f"🧠 GigaChat: ⚠️ не настроен (будут использоваться резервные упражнения)")
+
     print("=" * 55 + "\n")
 
     try:
